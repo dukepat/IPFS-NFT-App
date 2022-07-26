@@ -1,6 +1,6 @@
 # IPFS-Practical
 
-Now its time for you to launch your own NFT collection and store its metadata on IPFS
+Now its time for us to launch our own NFT collection and store its metadata on IPFS
 
 ![](https://i.imgur.com/3BdOj89.png)
 
