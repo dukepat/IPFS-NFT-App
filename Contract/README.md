@@ -1,66 +1,77 @@
-# Sample Hardhat Project
+# IPFS-Practical
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+Now its time for you to launch your own NFT collection and store its metadata on IPFS
 
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
-
-# Building a DAO
-
-![](https://i.imgur.com/6uXR2G9.png)
-## What is a DAO?
-
-DAO stands for **D**ecentralized **A**utonomous **O**rganization. You can think of DAOs as analogous to companies in the real world. Essentially, DAOs allow for members to create and vote on governance decisions.
-
-In traditional companies, when a decision needs to be made, the board of directors or executives of the company are in charge of making that decision. In a DAO, however, this process is democratized, and any member can create a proposal, and all other members can vote on it. Each proposal created has a deadline for voting, and after the deadline the decision is made in favour of the voting outcome (YES or NO).
-
-Membership in DAOs is typically restricted either by ownership of ERC20 tokens, or by ownership of NFTs. Examples of DAOs where membership and voting power is proportional to how many tokens you own include [Uniswap](https://uniswap.org) and [ENS](https://ens.domains). Examples of DAOs where they are based on NFTs include [Meebits DAO](https://www.meebitsdao.world/).
-
-## Building our DAO
-
-You want to launch a DAO for holders of your `CryptoDevs` NFTs. From the ETH that was gained through the ICO, you built up a DAO Treasury. The DAO now has a lot of ETH, but currently does nothing with it.
-
-You want to allow your NFT holders to create and vote on proposals to use that ETH for purchasing other NFTs from an NFT marketplace, and speculate on price. Maybe in the future when you sell the NFT back, you split the profits among all members of the DAO.
+![](https://i.imgur.com/3BdOj89.png)
 
 ## Requirements
 
-- Anyone with a `CryptoDevs` NFT can create a proposal to purchase a different NFT from an NFT marketplace
-- Everyone with a `CryptoDevs` NFT can vote for or against the active proposals
-- Each NFT counts as one vote for each proposal
-- Voter cannot vote multiple times on the same proposal with the same NFT
-- If majority of the voters vote for the proposal by the deadline, the NFT purchase is automatically executed
+- There should only exist 10 LearnWeb3 Punk NFT's and each one of them should be unique.
+- User's should be able to mint only 1 NFT with one transaction.
+- The metadata for the NFT's should be stored on IPFS
+- There should be a website for your NFT Collection.
+- The NFT contract should be deployed on Mumbai testnet
 
-## What we will make
-
-- To be able to purchase NFTs automatically when a proposal is passed, you need an on-chain NFT marketplace that you can call a `purchase()` function on. There exist a lot of NFT marketplaces out there, but to avoid overcomplicating things, we will create a simplified fake NFT marketplace for this tutorial as the focus is on the DAO.
-- We will also make the actual DAO smart contract using Hardhat.
-- We will make the website using Next.js to allow users to create and vote on proposals
+Lets start building 🚀
 
 ## Prerequisites
 
-- You have completed the [NFT-Collection Tutorial](https://github.com/LearnWeb3DAO/NFT-Collection)
-- You must have some ETH to give to the DAO Treasury
+- You should have completed the [IPFS Theory tutorial](https://github.com/LearnWeb3DAO/IPFS-Theory)
 
-## BUIDL IT
+## Build
 
-### Smart Contract Development
+### IPFS
 
-We will start off with first creating the smart contracts. We will be making two smart contracts:
+- Now its time for us to upload our files to ipfs
+ - We would be using a service called [Pinata](https://www.pinata.cloud/) which will help us to pin content on IPFS
+ - Go to [Pinata Dashboard](https://app.pinata.cloud/pinmanager) and click on `Upload` and then on `Folder`
+![](https://i.imgur.com/SD7rsNP.png)
 
-- `FakeNFTMarketplace.sol`
-- `CryptoDevsDAO.sol`
+- Download [the LW3Punks folder](https://github.com/LearnWeb3DAO/IPFS-Practical/tree/master/my-app/public/LW3punks) to your computer and then upload to it `Pinata`, name the folder `LW3Punks`
+- Now you should be able to see a `CID` for your folder, Awesome!
+![](https://i.imgur.com/LiQdL75.png)
 
-To do so, we will use the [Hardhat](https://hardhat.org) development framework we have been using for the last few tutorials.
+- You can check that it actually got uploaded to IPFS is by opening this up:
+`https://ipfs.io/ipfs/your-nft-folder-cid` replace `your-nft-folder-cid` with the CID you recieved from pinata.
 
-- Create a folder for this project named `DAO-Tutorial`, and open up a Terminal window in that folder.
-- Setup a new hardhat project by running the following commands in your terminal:
+- The images for your NFT's have now been uploaded to IPFS but just having images is not enough, each NFT should also have associated metadata
+- We will now upload metadata for each NFT to IPFS, each metadata file will be a `json` file. Example for metadata of NFT `1` has been given below:
+    ```json
+    {
+     "name":"1",
+     "description":"NFT Collection for LearnWeb3 Students",
+     "image":"ipfs://QmQBHarz2WFczTjz5GnhjHrbUPDnB48W5BM2v2h6HbE1rZ/1.png"
+    }
+    ```
+- Note how "image" has ipfs location in it instead of an `https` url. Also note that because you uploaded a folder, you will also need to specify which file within the folder has the correct image for the given NFT. Thus in our case the correct way to specify the location for an NFT image would be 
+`ipfs://CID-OF-THE-LW3Punks-Folder/NFT-NAME.png`
+
+- We have pre-generated files for metadata for you, you can download them to your computer from [here](https://github.com/LearnWeb3DAO/IPFS-Practical/tree/master/my-app/public/metadata), upload these files to pinata and name the folder `metadata`
+- Now each NFT's metadata has been uploaded to IPFS and pinata should have generated a CID for your metadata folder
+![](https://i.imgur.com/zm39qFx.png)
+
+- You can check that it actually got uploaded to IPFS is by opening this up:
+`https://ipfs.io/ipfs/your-metadata-folder-cid` replace `your-metadata-folder-cid` with the CID you recieved from pinata.
+
+- Copy this CID and store it on your notepad, you will need this futher down in the tutorial
+
+### Contract
+
+- Its time to write our contract 🥳
+- We will also be using [`Ownable.sol`](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol) from Openzeppelin which helps you manage the `Ownership` of a contract
+
+  - By default, the owner of an Ownable contract is the account that deployed it, which is usually exactly what you want.
+  - Ownable also lets you:
+    - transferOwnership from the owner account to a new one, and
+    - renounceOwnership for the owner to relinquish this administrative privilege, a common pattern after an initial stage with centralized administration is over.
+
+- We would also be using an extension of ERC721 known as [ERC721 Enumerable](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/extensions/ERC721Enumerable.sol)
+  - ERC721 Enumerable is helps you to keep track of all the tokenIds in the contract and also the tokensIds held by an address for a given contract.
+  - Please have a look at the [functions](https://docs.openzeppelin.com/contracts/4.x/api/token/erc721#ERC721Enumerable) it implements before moving ahead
+  
+To build the smart contract we would be using [Hardhat](https://hardhat.org/). Hardhat is an Ethereum development environment and framework designed for full stack development in Solidity. In simple words you can write your smart contract, deploy them, run tests, and debug your code.
+
+- To setup a Hardhat project, Open up a terminal and execute these commands
 
   ```bash
   mkdir hardhat-tutorial
@@ -68,8 +79,6 @@ To do so, we will use the [Hardhat](https://hardhat.org) development framework w
   npm init --yes
   npm install --save-dev hardhat
   ```
-
-  Now that you have installed Hardhat, we can setup a project. Execute the following command in your terminal.
 
 - In the same directory where you installed Hardhat run:
 
@@ -82,977 +91,541 @@ To do so, we will use the [Hardhat](https://hardhat.org) development framework w
   - Press enter for the question on if you want to add a `.gitignore`
   - Press enter for `Do you want to install this sample project's dependencies with npm (@nomicfoundation/hardhat-toolbox)?`
 
-    Now you have a hardhat project ready to go!
+Now you have a hardhat project ready to go!
 
-    If you are on Windows, please do this extra step and install these libraries as well :)
+If you are not on mac, please do this extra step and install these libraries as well :)
 
-    ```bash
-    npm install --save-dev @nomicfoundation/hardhat-toolbox
-    ```
+```bash
+npm install --save-dev @nomicfoundation/hardhat-toolbox
+```
+and press `enter` for all the questions.
 
-  and press `Enter` for all the questions (Choose the `Create a basic sample project`) option.
+- In the same terminal now install `@openzeppelin/contracts` as we would be importing [Openzeppelin's ERC721Enumerable Contract](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/extensions/ERC721Enumerable.sol) in our `LW3Punks` contract.
 
-- Now, let's install the `@openzeppelin/contracts` package from NPM as we will be using [OpenZeppelin's Ownable Contract](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol) for the DAO contract.
   ```bash
   npm install @openzeppelin/contracts
   ```
-- First, let's make a simple Fake NFT Marketplace. Create a file named `FakeNFTMarketplace.sol` under the `contracts` directory within `hardhat-tutorial`, and add the following code.
+- Now lets create a new file inside the `contracts` directory and call it `LW3Punks.sol`
+    ```solidity
+        // SPDX-License-Identifier: MIT
+        pragma solidity ^0.8.4;
 
-  ```solidity
-  // SPDX-License-Identifier: MIT
-  pragma solidity ^0.8.0;
+        import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+        import "@openzeppelin/contracts/access/Ownable.sol";
+        import "@openzeppelin/contracts/utils/Strings.sol";
 
-  contract FakeNFTMarketplace {
-      /// @dev Maintain a mapping of Fake TokenID to Owner addresses
-      mapping(uint256 => address) public tokens;
-      /// @dev Set the purchase price for each Fake NFT
-      uint256 nftPrice = 0.1 ether;
+        contract LW3Punks is ERC721Enumerable, Ownable {
+            using Strings for uint256;
+            /**
+             * @dev _baseTokenURI for computing {tokenURI}. If set, the resulting URI for each
+             * token will be the concatenation of the `baseURI` and the `tokenId`.
+             */
+            string _baseTokenURI;
 
-      /// @dev purchase() accepts ETH and marks the owner of the given tokenId as the caller address
-      /// @param _tokenId - the fake NFT token Id to purchase
-      function purchase(uint256 _tokenId) external payable {
-          require(msg.value == nftPrice, "This NFT costs 0.1 ether");
-          tokens[_tokenId] = msg.sender;
-      }
+            //  _price is the price of one LW3Punks NFT
+            uint256 public _price = 0.01 ether;
 
-      /// @dev getPrice() returns the price of one NFT
-      function getPrice() external view returns (uint256) {
-          return nftPrice;
-      }
+            // _paused is used to pause the contract in case of an emergency
+            bool public _paused;
 
-      /// @dev available() checks whether the given tokenId has already been sold or not
-      /// @param _tokenId - the tokenId to check for
-      function available(uint256 _tokenId) external view returns (bool) {
-          // address(0) = 0x0000000000000000000000000000000000000000
-          // This is the default value for addresses in Solidity
-          if (tokens[_tokenId] == address(0)) {
-              return true;
-          }
-          return false;
-      }
-  }
-  ```
+            // max number of LW3Punks
+            uint256 public maxTokenIds = 10;
 
-- The `FakeNFTMarketplace` exposes some basic functions that we will be using from the DAO contract to purchase NFTs if a proposal is passed. A real NFT marketplace would be more complicated - as not all NFTs have the same price.
-- Let's make sure everything compiles before we start writing the DAO Contract. Run the following command inside the `hardhat-tutorial` folder from your Terminal.
-  ```bash
-  npx hardhat compile
-  ```
-  and make sure there are no compilation errors.
-- Now, we will start writing the `CryptoDevsDAO` contract. Since this is mostly a completely custom contract, and relatively more complicated than what we have done so far, we will explain this one bit-by-bit.
-- First, let's write the boilerplate code for the contract. Create a new file named `CryptoDevsDAO.sol` under the `contracts` directory in `hardhat-tutorial` and add the following code to it.
+            // total number of tokenIds minted
+            uint256 public tokenIds;
 
-  ```solidity
-  // SPDX-License-Identifier: MIT
-  pragma solidity ^0.8.0;
+            modifier onlyWhenNotPaused {
+                require(!_paused, "Contract currently paused");
+                _;
+            }
 
-  import "@openzeppelin/contracts/access/Ownable.sol";
+            /**
+             * @dev ERC721 constructor takes in a `name` and a `symbol` to the token collection.
+             * name in our case is `LW3Punks` and symbol is `LW3P`.
+             * Constructor for LW3P takes in the baseURI to set _baseTokenURI for the collection.
+             */
+            constructor (string memory baseURI) ERC721("LW3Punks", "LW3P") {
+                _baseTokenURI = baseURI;
+            }
 
-  // We will add the Interfaces here
+            /**
+            * @dev mint allows an user to mint 1 NFT per transaction.
+            */
+            function mint() public payable onlyWhenNotPaused {
+                require(tokenIds < maxTokenIds, "Exceed maximum LW3Punks supply");
+                require(msg.value >= _price, "Ether sent is not correct");
+                tokenIds += 1;
+                _safeMint(msg.sender, tokenIds);
+            }
 
-  contract CryptoDevsDAO is Ownable {
-      // We will write contract code here
-  }
-  ```
+            /**
+            * @dev _baseURI overides the Openzeppelin's ERC721 implementation which by default
+            * returned an empty string for the baseURI
+            */
+            function _baseURI() internal view virtual override returns (string memory) {
+                return _baseTokenURI;
+            }
 
-- Now, we will need to call functions on the `FakeNFTMarketplace` contract, and your previously deployed `CryptoDevs NFT` contract. Recall from the `Advanced Solidity Topics` tutorial that we need to provide an interface for those contracts, so this contract knows which functions are available to call and what they take as parameters and what they return.
-- Add the following two interfaces to your code by adding the following code
+            /**
+            * @dev tokenURI overides the Openzeppelin's ERC721 implementation for tokenURI function
+            * This function returns the URI from where we can extract the metadata for a given tokenId
+            */
+            function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+                require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-  ```solidity
-  /**
-   * Interface for the FakeNFTMarketplace
-   */
-  interface IFakeNFTMarketplace {
-      /// @dev getPrice() returns the price of an NFT from the FakeNFTMarketplace
-      /// @return Returns the price in Wei for an NFT
-      function getPrice() external view returns (uint256);
+                string memory baseURI = _baseURI();
+                // Here it checks if the length of the baseURI is greater than 0, if it is return the baseURI and attach
+                // the tokenId and `.json` to it so that it knows the location of the metadata json file for a given 
+                // tokenId stored on IPFS
+                // If baseURI is empty return an empty string
+                return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
+            }
 
-      /// @dev available() returns whether or not the given _tokenId has already been purchased
-      /// @return Returns a boolean value - true if available, false if not
-      function available(uint256 _tokenId) external view returns (bool);
+            /**
+            * @dev setPaused makes the contract paused or unpaused
+             */
+            function setPaused(bool val) public onlyOwner {
+                _paused = val;
+            }
 
-      /// @dev purchase() purchases an NFT from the FakeNFTMarketplace
-      /// @param _tokenId - the fake NFT tokenID to purchase
-      function purchase(uint256 _tokenId) external payable;
-  }
+            /**
+            * @dev withdraw sends all the ether in the contract 
+            * to the owner of the contract
+             */
+            function withdraw() public onlyOwner  {
+                address _owner = owner();
+                uint256 amount = address(this).balance;
+                (bool sent, ) =  _owner.call{value: amount}("");
+                require(sent, "Failed to send Ether");
+            }
 
-  /**
-   * Minimal interface for CryptoDevsNFT containing only two functions
-   * that we are interested in
-   */
-  interface ICryptoDevsNFT {
-      /// @dev balanceOf returns the number of NFTs owned by the given address
-      /// @param owner - address to fetch number of NFTs for
-      /// @return Returns the number of NFTs owned
-      function balanceOf(address owner) external view returns (uint256);
+             // Function to receive Ether. msg.data must be empty
+            receive() external payable {}
 
-      /// @dev tokenOfOwnerByIndex returns a tokenID at given index for owner
-      /// @param owner - address to fetch the NFT TokenID for
-      /// @param index - index of NFT in owned tokens array to fetch
-      /// @return Returns the TokenID of the NFT
-      function tokenOfOwnerByIndex(address owner, uint256 index)
-          external
-          view
-          returns (uint256);
-  }
-  ```
+            // Fallback function is called when msg.data is not empty
+            fallback() external payable {}
+        }
+    ```
 
-- Now, let's think about what functionality we need in the DAO contract.
-  - Store created proposals in contract state
-  - Allow holders of the CryptoDevs NFT to create new proposals
-  - Allow holders of the CryptoDevs NFT to vote on proposals, given they haven't already voted, and that the proposal hasn't passed it's deadline yet
-  - Allow holders of the CryptoDevs NFT to execute a proposal after it's deadline has been exceeded, triggering an NFT purchase in case it passed
-- Let's start off by creating a `struct` representing a `Proposal`. In your contract, add the following code:
-  ```solidity
-  // Create a struct named Proposal containing all relevant information
-  struct Proposal {
-      // nftTokenId - the tokenID of the NFT to purchase from FakeNFTMarketplace if the proposal passes
-      uint256 nftTokenId;
-      // deadline - the UNIX timestamp until which this proposal is active. Proposal can be executed after the deadline has been exceeded.
-      uint256 deadline;
-      // yayVotes - number of yay votes for this proposal
-      uint256 yayVotes;
-      // nayVotes - number of nay votes for this proposal
-      uint256 nayVotes;
-      // executed - whether or not this proposal has been executed yet. Cannot be executed before the deadline has been exceeded.
-      bool executed;
-      // voters - a mapping of CryptoDevsNFT tokenIDs to booleans indicating whether that NFT has already been used to cast a vote or not
-      mapping(uint256 => bool) voters;
-  }
-  ```
-- Let's also create a mapping from Proposal IDs to Proposals to hold all created proposals, and a counter to count the number of proposals that exist.
-  ```solidity
-  // Create a mapping of ID to Proposal
-  mapping(uint256 => Proposal) public proposals;
-  // Number of proposals that have been created
-  uint256 public numProposals;
-  ```
-- Now, since we will be calling functions on the `FakeNFTMarketplace` and `CryptoDevsNFT` contract, let's initialize variables for those contracts.
-  ```solidity
-  IFakeNFTMarketplace nftMarketplace;
-  ICryptoDevsNFT cryptoDevsNFT;
-  ```
-- Create a `constructor` function that will initialize those contract variables, and also accept an ETH deposit from the deployer to fill the DAO ETH treasury. (In the background, since we imported the `Ownable` contract, this will also set the contract deployer as the owner of this contract)
-  ```solidity
-  // Create a payable constructor which initializes the contract
-  // instances for FakeNFTMarketplace and CryptoDevsNFT
-  // The payable allows this constructor to accept an ETH deposit when it is being deployed
-  constructor(address _nftMarketplace, address _cryptoDevsNFT) payable {
-      nftMarketplace = IFakeNFTMarketplace(_nftMarketplace);
-      cryptoDevsNFT = ICryptoDevsNFT(_cryptoDevsNFT);
-  }
-  ```
-- Now, since we want pretty much all of our other functions to only be called by those who own NFTs from the `CryptoDevs NFT` contract, we will create a `modifier` to avoid duplicating code.
-  ```solidity
-  // Create a modifier which only allows a function to be
-  // called by someone who owns at least 1 CryptoDevsNFT
-  modifier nftHolderOnly() {
-      require(cryptoDevsNFT.balanceOf(msg.sender) > 0, "NOT_A_DAO_MEMBER");
-      _;
-  }
-  ```
-- We now have enough to write our `createProposal` function, which will allow members to create new proposals.
+- Now we would install `dotenv` package to be able to import the env file and use it in our config. Open up a terminal pointing at`hardhat-tutorial` directory and execute this command
 
-  ```solidity
-  /// @dev createProposal allows a CryptoDevsNFT holder to create a new proposal in the DAO
-  /// @param _nftTokenId - the tokenID of the NFT to be purchased from FakeNFTMarketplace if this proposal passes
-  /// @return Returns the proposal index for the newly created proposal
-  function createProposal(uint256 _nftTokenId)
-      external
-      nftHolderOnly
-      returns (uint256)
-  {
-      require(nftMarketplace.available(_nftTokenId), "NFT_NOT_FOR_SALE");
-      Proposal storage proposal = proposals[numProposals];
-      proposal.nftTokenId = _nftTokenId;
-      // Set the proposal's voting deadline to be (current time + 5 minutes)
-      proposal.deadline = block.timestamp + 5 minutes;
-
-      numProposals++;
-
-      return numProposals - 1;
-  }
-  ```
-
-- Now, to vote on a proposal, we want to add an additional restriction that the proposal being voted on must not have had it's deadline exceeded. To do so, we will create a second modifier.
-  ```solidity
-  // Create a modifier which only allows a function to be
-  // called if the given proposal's deadline has not been exceeded yet
-  modifier activeProposalOnly(uint256 proposalIndex) {
-      require(
-          proposals[proposalIndex].deadline > block.timestamp,
-          "DEADLINE_EXCEEDED"
-      );
-      _;
-  }
-  ```
-  Note how this modifier takes a parameter!
-- Additionally, since a vote can only be one of two values (YAY or NAY) - we can create an `enum` representing possible options.
-  ```solidity
-  // Create an enum named Vote containing possible options for a vote
-  enum Vote {
-      YAY, // YAY = 0
-      NAY // NAY = 1
-  }
-  ```
-- Let's write the `voteOnProposal` function
-
-  ```solidity
-  /// @dev voteOnProposal allows a CryptoDevsNFT holder to cast their vote on an active proposal
-  /// @param proposalIndex - the index of the proposal to vote on in the proposals array
-  /// @param vote - the type of vote they want to cast
-  function voteOnProposal(uint256 proposalIndex, Vote vote)
-      external
-      nftHolderOnly
-      activeProposalOnly(proposalIndex)
-  {
-      Proposal storage proposal = proposals[proposalIndex];
-
-      uint256 voterNFTBalance = cryptoDevsNFT.balanceOf(msg.sender);
-      uint256 numVotes = 0;
-
-      // Calculate how many NFTs are owned by the voter
-      // that haven't already been used for voting on this proposal
-      for (uint256 i = 0; i < voterNFTBalance; i++) {
-          uint256 tokenId = cryptoDevsNFT.tokenOfOwnerByIndex(msg.sender, i);
-          if (proposal.voters[tokenId] == false) {
-              numVotes++;
-              proposal.voters[tokenId] = true;
-          }
-      }
-      require(numVotes > 0, "ALREADY_VOTED");
-
-      if (vote == Vote.YAY) {
-          proposal.yayVotes += numVotes;
-      } else {
-          proposal.nayVotes += numVotes;
-      }
-  }
-  ```
-
-- We're almost done! To execute a proposal whose deadline has exceeded, we will create our final modifier.
-  ```solidity
-  // Create a modifier which only allows a function to be
-  // called if the given proposals' deadline HAS been exceeded
-  // and if the proposal has not yet been executed
-  modifier inactiveProposalOnly(uint256 proposalIndex) {
-      require(
-          proposals[proposalIndex].deadline <= block.timestamp,
-          "DEADLINE_NOT_EXCEEDED"
-      );
-      require(
-          proposals[proposalIndex].executed == false,
-          "PROPOSAL_ALREADY_EXECUTED"
-      );
-      _;
-  }
-  ```
-  Note this modifier also takes a parameter!
-- Let's write the code for `executeProposal`
-
-  ```solidity
-  /// @dev executeProposal allows any CryptoDevsNFT holder to execute a proposal after it's deadline has been exceeded
-  /// @param proposalIndex - the index of the proposal to execute in the proposals array
-  function executeProposal(uint256 proposalIndex)
-      external
-      nftHolderOnly
-      inactiveProposalOnly(proposalIndex)
-  {
-      Proposal storage proposal = proposals[proposalIndex];
-
-      // If the proposal has more YAY votes than NAY votes
-      // purchase the NFT from the FakeNFTMarketplace
-      if (proposal.yayVotes > proposal.nayVotes) {
-          uint256 nftPrice = nftMarketplace.getPrice();
-          require(address(this).balance >= nftPrice, "NOT_ENOUGH_FUNDS");
-          nftMarketplace.purchase{value: nftPrice}(proposal.nftTokenId);
-      }
-      proposal.executed = true;
-  }
-  ```
-
-- We have at this point implemented all the core functionality. However, there are a couple of additional features we could and should implement.
-  - Allow the contract owner to withdraw the ETH from the DAO if needed
-  - Allow the contract to accept further ETH deposits
-- The `Ownable` contract we inherit from contains a modifier `onlyOwner` which restricts a function to only be able to be called by the contract owner. Let's implement `withdrawEther` using that modifier.
-  ```solidity
-  /// @dev withdrawEther allows the contract owner (deployer) to withdraw the ETH from the contract
-  function withdrawEther() external onlyOwner {
-      payable(owner()).transfer(address(this).balance);
-  }
-  ```
-  This will transfer the entire ETH balance of the contract to the owner address
-- Finally, to allow for adding more ETH deposits to the DAO treasury, we need to add some special functions. Normally, contract addresses cannot accept ETH sent to them, unless it was through a `payable` function. But we don't want users to call functions just to deposit money, they should be able to tranfer ETH directly from their wallet. For that, let's add these two functions:
-
-  ```solidity
-  // The following two functions allow the contract to accept ETH deposits
-  // directly from a wallet without calling a function
-  receive() external payable {}
-
-  fallback() external payable {}
-  ```
-
-### Smart Contract Deployment
-
-Now that we have written both our contracts, let's deploy them to the [Rinkeby Testnet](https://rinkeby.etherscan.com). Ensure you have some ETH on the Rinkeby Testnet.
-
-- Install the `dotenv` package from NPM to be able to use environment variables specified in `.env` files in the `hardhat.config.js`. Execute the following command in your Terminal in the `hardhat-tutorial` directory.
   ```bash
   npm install dotenv
   ```
-- Now create a `.env` file in the `hardhat-tutorial` directory and set the following two environment variables. Follow the instructions to get their values. Make sure the Rinkeby private key you use is has ETH on the Rinkeby Testnet.
+- Now create a `.env` file in the `hardhat-tutorial` folder and add the following lines, use the instructions in the comments to get your `ALCHEMY_API_KEY_URL` and `MUMBAI_PRIVATE_KEY`.If you dont have Mumbai on MetaMask, you can follow [this](https://portal.thirdweb.com/guides/get-matic-on-polygon-mumbai-testnet-faucet) to add it to your MetaMask, make sure that the account from which you get your mumbai private key is funded with mumbai matic, you can get some from [here](https://faucet.polygon.technology/).
 
   ```bash
   // Go to https://www.alchemyapi.io, sign up, create
-  // a new App in its dashboard and select the network as Rinkeby, and replace "add-the-alchemy-key-url-here" with its key url
+  // a new App in its dashboard and select the chain as Polygon and network as Mumbai, and replace "add-the-alchemy-key-url-here" with its key url
   ALCHEMY_API_KEY_URL="add-the-alchemy-key-url-here"
 
-  // Replace this private key with your RINKEBY account private key
+  // Replace this private key with your MUMBAI account private key
   // To export your private key from Metamask, open Metamask and
   // go to Account Details > Export Private Key
   // Be aware of NEVER putting real Ether into testing accounts
-  RINKEBY_PRIVATE_KEY="add-the-rinkeby-private-key-here"
+  MUMBAI_PRIVATE_KEY="add-the-mumbai-private-key-here"
   ```
+ 
+ - Lets deploy the contract to `mumbai` network. Create a new file, or replace the existing default one, named `deploy.js` under the `scripts` folder. Remember to replace `YOUR-METADATA-CID` with the CID you saved to your notepad.
 
-- Now, let's write a deployment script to automatically deploy both our contracts for us. Create a new file, or replace the existing default one, named `deploy.js` under `hardhat-tutorial/scripts`, and add the following code:
+    ```javascript
+    const { ethers } = require("hardhat");
+    require("dotenv").config({ path: ".env" });
 
-  ```javascript
-  const { ethers } = require("hardhat");
-  const { CRYPTODEVS_NFT_CONTRACT_ADDRESS } = require("../constants");
+    async function main() {
+      // URL from where we can extract the metadata for a LW3Punks
+      const metadataURL = "ipfs://YOUR-METADATA-CID/";
+      /*
+      A ContractFactory in ethers.js is an abstraction used to deploy new smart contracts,
+      so lw3PunksContract here is a factory for instances of our LW3Punks contract.
+      */
+      const lw3PunksContract = await ethers.getContractFactory("LW3Punks");
 
-  async function main() {
-    // Deploy the FakeNFTMarketplace contract first
-    const FakeNFTMarketplace = await ethers.getContractFactory(
-      "FakeNFTMarketplace"
-    );
-    const fakeNftMarketplace = await FakeNFTMarketplace.deploy();
-    await fakeNftMarketplace.deployed();
+      // deploy the contract
+      const deployedLW3PunksContract = await lw3PunksContract.deploy(metadataURL);
 
-    console.log("FakeNFTMarketplace deployed to: ", fakeNftMarketplace.address);
+      await deployedLW3PunksContract.deployed();
 
-    // Now deploy the CryptoDevsDAO contract
-    const CryptoDevsDAO = await ethers.getContractFactory("CryptoDevsDAO");
-    const cryptoDevsDAO = await CryptoDevsDAO.deploy(
-      fakeNftMarketplace.address,
-      CRYPTODEVS_NFT_CONTRACT_ADDRESS,
-      {
-        // This assumes your account has at least 1 ETH in it's account
-        // Change this value as you want
-        value: ethers.utils.parseEther("1"),
-      }
-    );
-    await cryptoDevsDAO.deployed();
+      // print the address of the deployed contract
+      console.log("LW3Punks Contract Address:", deployedLW3PunksContract.address);
+    }
 
-    console.log("CryptoDevsDAO deployed to: ", cryptoDevsDAO.address);
-  }
+    // Call the main function and catch if there is any error
+    main()
+      .then(() => process.exit(0))
+      .catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
 
-  main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
-  ```
+    ```
 
-- As you may have noticed, `deploy.js` imports a variable called `CRYPTODEVS_NFT_CONTRACT_ADDRESS` from a file named `constants`. Let's make that. Create a new file named `constants.js` in the `hardhat-tutorial` directory.
 
-  ```javascript
-  // Replace the value with your NFT contract address
-  const CRYPTODEVS_NFT_CONTRACT_ADDRESS =
-    "YOUR_CRYPTODEVS_NFT_CONTRACT_ADDRESS_HERE";
+- Now open the hardhat.config.js file, we would add the `mumbai` network here so that we can deploy our contract to mumbai. Replace all the lines in the `hardhat.config.js` file with the given below lines
 
-  module.exports = { CRYPTODEVS_NFT_CONTRACT_ADDRESS };
-  ```
+    ```javascript
+    require("@nomicfoundation/hardhat-toolbox");
+    require("dotenv").config({ path: ".env" });
 
-- Now, let's add the Rinkeby Network to your Hardhat Config so we can deploy to Rinkeby. Open your `hardhat.config.js` file and replace it with the following:
+    const ALCHEMY_API_KEY_URL = process.env.ALCHEMY_API_KEY_URL;
 
-  ```javascript
-  require("@nomicfoundation/hardhat-toolbox");
-  require("dotenv").config({ path: ".env" });
+    const MUMBAI_PRIVATE_KEY = process.env.MUMBAI_PRIVATE_KEY;
 
-  const ALCHEMY_API_KEY_URL = process.env.ALCHEMY_API_KEY_URL;
-
-  const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY;
-
-  module.exports = {
-    solidity: "0.8.9",
-    networks: {
-      rinkeby: {
-        url: ALCHEMY_API_KEY_URL,
-        accounts: [RINKEBY_PRIVATE_KEY],
+    module.exports = {
+      solidity: "0.8.4",
+      networks: {
+        mumbai: {
+          url: ALCHEMY_API_KEY_URL,
+          accounts: [MUMBAI_PRIVATE_KEY],
+        },
       },
-    },
-  };
-  ```
-- Let's make sure everything compiles before proceeding. Execute the following command from your Terminal within the `hardhat-tutorial` folder.
+    };
+    ```
+    
+- Compile the contract, open up a terminal pointing at`hardhat-tutorial` directory and execute this command
+
   ```bash
-  npx hardhat compile
+    npx hardhat compile
   ```
-  and make sure there are no compilation errors.
-  If you do face compilation errors, try comparing your code against the [final version present here](https://github.com/LearnWeb3DAO/Building-a-DAO/blob/main/hardhat-tutorial/contracts/CryptoDevsDAO.sol)
   
-- Let's deploy! Execute the following command in your Terminal from the `hardhat-tutorial` directory
+- To deploy, open up a terminal pointing at`hardhat-tutorial` directory and execute this command
   ```bash
-  npx hardhat run scripts/deploy.js --network rinkeby
+    npx hardhat run scripts/deploy.js --network mumbai
   ```
-- Save the `FakeNFTMarketplace` and `CryptoDevsDAO` contract addresses that get printed in your Terminal. You will need those later.
+- Save the LW3Punks contract address that was printed on your terminal in your notepad, you would need it futher down in the tutorial.
 
-### Frontend Development
 
-Whew! So much coding!
+### Website
 
-We've successfully developed and deployed our contracts to the Rinkeby Testnet. Now, it's time to build the Frontend interface so users can create and vote on proposals from the website.
+- To develop the website we would be using [React](https://reactjs.org/) and [Next Js](https://nextjs.org/). React is a javascript framework which is used to make websites and Next Js is built on top of React.
+- First, You would need to create a new `next` app. Your folder structure should look something like
 
-To develop the website, we will be using [Next.js](https://nextjs.org/) as we have so far, which is a meta-framework built on top of [React](https://reactjs.org/).
-
-- Let's get started by creating a new `next` app. Your folder structure should look like this after setting up the `next` app:
-  ```bash
-  - DAO-Tutorial
-      - hardhat-tutorial
-      - my-app
   ```
-- To create `my-app`, execute the following command in your Terminal within the `DAO-Tutorial` directory
-  ```bash
-  npx create-next-app@latest
+     - IPFS-Practical
+         - hardhat-tutorial
+         - my-app
   ```
-  and press `Enter` for all the question prompts. This should create the `my-app` folder and setup a basic Next.js project.
-- Let's see if everything works. Run the following in your Terminal
+
+- To create this `my-app`, in the terminal point to NFT-Collection folder and type
+
   ```bash
+    npx create-next-app@latest
+  ```
+
+  and press `enter` for all the questions
+
+- Now to run the app, execute these commands in the terminal
+
+  ```
   cd my-app
   npm run dev
   ```
-- Your website should be up and running at `http://localhost:3000`. However, this is a basic starter Next.js project and we need to add code for it to do what we want.
-- Let's install the `web3modal` and `ethers` library. Web3Modal will allow us to support connecting to wallets in the browser, and Ethers will be used to interact with the blockchain. Run this in your Terminal from the `my-app` directory.
+
+- Now go to `http://localhost:3000`, your app should be running 🤘
+
+- Now lets install Web3Modal library(https://github.com/Web3Modal/web3modal). Web3Modal is an easy-to-use library to help developers add support for multiple providers in their apps with a simple customizable configuration. By default Web3Modal Library supports injected providers like (Metamask, Dapper, Gnosis Safe, Frame, Web3 Browsers, etc), You can also easily configure the library to support Portis, Fortmatic, Squarelink, Torus, Authereum, D'CENT Wallet and Arkane.
+  Open up a terminal pointing at`my-app` directory and execute this command
+
   ```bash
-  npm install web3modal ethers
+    npm install web3modal
   ```
-- Download and save the following file as `0.svg` in `my-app/public/cryptodevs`. We will display this image on the webpage. NOTE: You need to create the `cryptodevs` folder inside `public`.
-  [Download Image](https://github.com/LearnWeb3DAO/Building-a-DAO/blob/main/my-app/public/cryptodevs/0.svg)
-- Add the following CSS styles in `my-app/styles/Home.modules.css`
 
-  ```css
-  .main {
-    min-height: 90vh;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    font-family: "Courier New", Courier, monospace;
-  }
+- In the same terminal also install `ethers.js`
 
-  .footer {
-    display: flex;
-    padding: 2rem 0;
-    border-top: 1px solid #eaeaea;
-    justify-content: center;
-    align-items: center;
-  }
+  ```bash
+  npm install ethers
+  ```
+  
+- In your public folder, download this folder and all the images in it [the LW3Punks folder](https://github.com/LearnWeb3DAO/IPFS-Practical/tree/master/my-app/public/LW3punks). Make sure that the name of the downloaded folder is `LW3Punks`
+- Now go to styles folder and replace all the contents of `Home.modules.css` file with the following code, this would add some styling to your dapp:
 
-  .image {
-    width: 70%;
-    height: 50%;
-    margin-left: 20%;
-  }
-
-  .title {
-    font-size: 2rem;
-    margin: 2rem 0;
-  }
-
-  .description {
-    line-height: 1;
-    margin: 2rem 0;
-    font-size: 1.2rem;
-  }
-
-  .button {
-    border-radius: 4px;
-    background-color: blue;
-    border: none;
-    color: #ffffff;
-    font-size: 15px;
-    padding: 10px;
-    width: 200px;
-    cursor: pointer;
-    margin-right: 2%;
-  }
-
-  .button2 {
-    border-radius: 4px;
-    background-color: indigo;
-    border: none;
-    color: #ffffff;
-    font-size: 15px;
-    padding: 10px;
-    cursor: pointer;
-    margin-right: 2%;
-    margin-top: 1rem;
-  }
-
-  .proposalCard {
-    width: fit-content;
-    margin-top: 0.25rem;
-    border: black 2px solid;
-    flex: 1;
-    flex-direction: column;
-  }
-
-  .container {
-    margin-top: 2rem;
-  }
-
-  .flex {
-    flex: 1;
-    justify-content: space-between;
-  }
-
-  @media (max-width: 1000px) {
+    ```css
     .main {
-      width: 100%;
-      flex-direction: column;
+      min-height: 90vh;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .footer {
+      display: flex;
+      padding: 2rem 0;
+      border-top: 1px solid #eaeaea;
       justify-content: center;
       align-items: center;
     }
-  }
-  ```
 
-- The website also needs to read/write data from two smart contracts - `CryptoDevsDAO` and `CryptoDevsNFT`. Let's store their contract addresses and ABIs in a constants file. Create a `constants.js` file in the `my-app` directory.
-
-  ```javascript
-  export const CRYPTODEVS_DAO_CONTRACT_ADDRESS = "";
-  export const CRYPTODEVS_NFT_CONTRACT_ADDRESS = "";
-
-  export const CRYPTODEVS_DAO_ABI = [];
-  export const CRYPTODEVS_NFT_ABI = [];
-  ```
-
-- Replace the contract address and ABI values with your relevant contract addresses and ABIs.
-- Now for the actual cool website code. Open up `my-app/pages/index.js` and write the following code. Explanation of the code can be found in the comments.
-
-  ```javascript
-  import { Contract, providers } from "ethers";
-  import { formatEther } from "ethers/lib/utils";
-  import Head from "next/head";
-  import { useEffect, useRef, useState } from "react";
-  import Web3Modal from "web3modal";
-  import {
-    CRYPTODEVS_DAO_ABI,
-    CRYPTODEVS_DAO_CONTRACT_ADDRESS,
-    CRYPTODEVS_NFT_ABI,
-    CRYPTODEVS_NFT_CONTRACT_ADDRESS,
-  } from "../constants";
-  import styles from "../styles/Home.module.css";
-
-  export default function Home() {
-    // ETH Balance of the DAO contract
-    const [treasuryBalance, setTreasuryBalance] = useState("0");
-    // Number of proposals created in the DAO
-    const [numProposals, setNumProposals] = useState("0");
-    // Array of all proposals created in the DAO
-    const [proposals, setProposals] = useState([]);
-    // User's balance of CryptoDevs NFTs
-    const [nftBalance, setNftBalance] = useState(0);
-    // Fake NFT Token ID to purchase. Used when creating a proposal.
-    const [fakeNftTokenId, setFakeNftTokenId] = useState("");
-    // One of "Create Proposal" or "View Proposals"
-    const [selectedTab, setSelectedTab] = useState("");
-    // True if waiting for a transaction to be mined, false otherwise.
-    const [loading, setLoading] = useState(false);
-    // True if user has connected their wallet, false otherwise
-    const [walletConnected, setWalletConnected] = useState(false);
-    const web3ModalRef = useRef();
-
-    // Helper function to connect wallet
-    const connectWallet = async () => {
-      try {
-        await getProviderOrSigner();
-        setWalletConnected(true);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Reads the ETH balance of the DAO contract and sets the `treasuryBalance` state variable
-    const getDAOTreasuryBalance = async () => {
-      try {
-        const provider = await getProviderOrSigner();
-        const balance = await provider.getBalance(
-          CRYPTODEVS_DAO_CONTRACT_ADDRESS
-        );
-        setTreasuryBalance(balance.toString());
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Reads the number of proposals in the DAO contract and sets the `numProposals` state variable
-    const getNumProposalsInDAO = async () => {
-      try {
-        const provider = await getProviderOrSigner();
-        const contract = getDaoContractInstance(provider);
-        const daoNumProposals = await contract.numProposals();
-        setNumProposals(daoNumProposals.toString());
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Reads the balance of the user's CryptoDevs NFTs and sets the `nftBalance` state variable
-    const getUserNFTBalance = async () => {
-      try {
-        const signer = await getProviderOrSigner(true);
-        const nftContract = getCryptodevsNFTContractInstance(signer);
-        const balance = await nftContract.balanceOf(signer.getAddress());
-        setNftBalance(parseInt(balance.toString()));
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Calls the `createProposal` function in the contract, using the tokenId from `fakeNftTokenId`
-    const createProposal = async () => {
-      try {
-        const signer = await getProviderOrSigner(true);
-        const daoContract = getDaoContractInstance(signer);
-        const txn = await daoContract.createProposal(fakeNftTokenId);
-        setLoading(true);
-        await txn.wait();
-        await getNumProposalsInDAO();
-        setLoading(false);
-      } catch (error) {
-        console.error(error);
-        window.alert(error.data.message);
-      }
-    };
-
-    // Helper function to fetch and parse one proposal from the DAO contract
-    // Given the Proposal ID
-    // and converts the returned data into a Javascript object with values we can use
-    const fetchProposalById = async (id) => {
-      try {
-        const provider = await getProviderOrSigner();
-        const daoContract = getDaoContractInstance(provider);
-        const proposal = await daoContract.proposals(id);
-        const parsedProposal = {
-          proposalId: id,
-          nftTokenId: proposal.nftTokenId.toString(),
-          deadline: new Date(parseInt(proposal.deadline.toString()) * 1000),
-          yayVotes: proposal.yayVotes.toString(),
-          nayVotes: proposal.nayVotes.toString(),
-          executed: proposal.executed,
-        };
-        return parsedProposal;
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Runs a loop `numProposals` times to fetch all proposals in the DAO
-    // and sets the `proposals` state variable
-    const fetchAllProposals = async () => {
-      try {
-        const proposals = [];
-        for (let i = 0; i < numProposals; i++) {
-          const proposal = await fetchProposalById(i);
-          proposals.push(proposal);
-        }
-        setProposals(proposals);
-        return proposals;
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Calls the `voteOnProposal` function in the contract, using the passed
-    // proposal ID and Vote
-    const voteOnProposal = async (proposalId, _vote) => {
-      try {
-        const signer = await getProviderOrSigner(true);
-        const daoContract = getDaoContractInstance(signer);
-
-        let vote = _vote === "YAY" ? 0 : 1;
-        const txn = await daoContract.voteOnProposal(proposalId, vote);
-        setLoading(true);
-        await txn.wait();
-        setLoading(false);
-        await fetchAllProposals();
-      } catch (error) {
-        console.error(error);
-        window.alert(error.data.message);
-      }
-    };
-
-    // Calls the `executeProposal` function in the contract, using
-    // the passed proposal ID
-    const executeProposal = async (proposalId) => {
-      try {
-        const signer = await getProviderOrSigner(true);
-        const daoContract = getDaoContractInstance(signer);
-        const txn = await daoContract.executeProposal(proposalId);
-        setLoading(true);
-        await txn.wait();
-        setLoading(false);
-        await fetchAllProposals();
-      } catch (error) {
-        console.error(error);
-        window.alert(error.data.message);
-      }
-    };
-
-    // Helper function to fetch a Provider/Signer instance from Metamask
-    const getProviderOrSigner = async (needSigner = false) => {
-      const provider = await web3ModalRef.current.connect();
-      const web3Provider = new providers.Web3Provider(provider);
-
-      const { chainId } = await web3Provider.getNetwork();
-      if (chainId !== 4) {
-        window.alert("Please switch to the Rinkeby network!");
-        throw new Error("Please switch to the Rinkeby network");
-      }
-
-      if (needSigner) {
-        const signer = web3Provider.getSigner();
-        return signer;
-      }
-      return web3Provider;
-    };
-
-    // Helper function to return a DAO Contract instance
-    // given a Provider/Signer
-    const getDaoContractInstance = (providerOrSigner) => {
-      return new Contract(
-        CRYPTODEVS_DAO_CONTRACT_ADDRESS,
-        CRYPTODEVS_DAO_ABI,
-        providerOrSigner
-      );
-    };
-
-    // Helper function to return a CryptoDevs NFT Contract instance
-    // given a Provider/Signer
-    const getCryptodevsNFTContractInstance = (providerOrSigner) => {
-      return new Contract(
-        CRYPTODEVS_NFT_CONTRACT_ADDRESS,
-        CRYPTODEVS_NFT_ABI,
-        providerOrSigner
-      );
-    };
-
-    // piece of code that runs everytime the value of `walletConnected` changes
-    // so when a wallet connects or disconnects
-    // Prompts user to connect wallet if not connected
-    // and then calls helper functions to fetch the
-    // DAO Treasury Balance, User NFT Balance, and Number of Proposals in the DAO
-    useEffect(() => {
-      if (!walletConnected) {
-        web3ModalRef.current = new Web3Modal({
-          network: "rinkeby",
-          providerOptions: {},
-          disableInjectedProvider: false,
-        });
-
-        connectWallet().then(() => {
-          getDAOTreasuryBalance();
-          getUserNFTBalance();
-          getNumProposalsInDAO();
-        });
-      }
-    }, [walletConnected]);
-
-    // Piece of code that runs everytime the value of `selectedTab` changes
-    // Used to re-fetch all proposals in the DAO when user switches
-    // to the 'View Proposals' tab
-    useEffect(() => {
-      if (selectedTab === "View Proposals") {
-        fetchAllProposals();
-      }
-    }, [selectedTab]);
-
-    // Render the contents of the appropriate tab based on `selectedTab`
-    function renderTabs() {
-      if (selectedTab === "Create Proposal") {
-        return renderCreateProposalTab();
-      } else if (selectedTab === "View Proposals") {
-        return renderViewProposalsTab();
-      }
-      return null;
+    .image {
+      width: 70%;
+      height: 50%;
+      margin-left: 20%;
     }
 
-    // Renders the 'Create Proposal' tab content
-    function renderCreateProposalTab() {
-      if (loading) {
-        return (
-          <div className={styles.description}>
-            Loading... Waiting for transaction...
-          </div>
-        );
-      } else if (nftBalance === 0) {
-        return (
-          <div className={styles.description}>
-            You do not own any CryptoDevs NFTs. <br />
-            <b>You cannot create or vote on proposals</b>
-          </div>
-        );
-      } else {
-        return (
-          <div className={styles.container}>
-            <label>Fake NFT Token ID to Purchase: </label>
-            <input
-              placeholder="0"
-              type="number"
-              onChange={(e) => setFakeNftTokenId(e.target.value)}
-            />
-            <button className={styles.button2} onClick={createProposal}>
-              Create
-            </button>
-          </div>
-        );
-      }
+    .title {
+      font-size: 2rem;
+      margin: 2rem 0;
     }
 
-    // Renders the 'View Proposals' tab content
-    function renderViewProposalsTab() {
-      if (loading) {
-        return (
-          <div className={styles.description}>
-            Loading... Waiting for transaction...
-          </div>
-        );
-      } else if (proposals.length === 0) {
-        return (
-          <div className={styles.description}>
-            No proposals have been created
-          </div>
-        );
-      } else {
-        return (
-          <div>
-            {proposals.map((p, index) => (
-              <div key={index} className={styles.proposalCard}>
-                <p>Proposal ID: {p.proposalId}</p>
-                <p>Fake NFT to Purchase: {p.nftTokenId}</p>
-                <p>Deadline: {p.deadline.toLocaleString()}</p>
-                <p>Yay Votes: {p.yayVotes}</p>
-                <p>Nay Votes: {p.nayVotes}</p>
-                <p>Executed?: {p.executed.toString()}</p>
-                {p.deadline.getTime() > Date.now() && !p.executed ? (
-                  <div className={styles.flex}>
-                    <button
-                      className={styles.button2}
-                      onClick={() => voteOnProposal(p.proposalId, "YAY")}
-                    >
-                      Vote YAY
-                    </button>
-                    <button
-                      className={styles.button2}
-                      onClick={() => voteOnProposal(p.proposalId, "NAY")}
-                    >
-                      Vote NAY
-                    </button>
+    .description {
+      line-height: 1;
+      margin: 2rem 0;
+      font-size: 1.2rem;
+    }
+
+    .button {
+      border-radius: 4px;
+      background-color: blue;
+      border: none;
+      color: #ffffff;
+      font-size: 15px;
+      padding: 20px;
+      width: 200px;
+      cursor: pointer;
+      margin-bottom: 2%;
+    }
+    @media (max-width: 1000px) {
+      .main {
+        width: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+    ```
+- Open you index.js file under the pages folder and paste the following code, explanation of the code can be found in the comments.
+
+    ```javascript
+        import { Contract, providers, utils } from "ethers";
+        import Head from "next/head";
+        import React, { useEffect, useRef, useState } from "react";
+        import Web3Modal from "web3modal";
+        import { abi, NFT_CONTRACT_ADDRESS } from "../constants";
+        import styles from "../styles/Home.module.css";
+
+        export default function Home() {
+          // walletConnected keep track of whether the user's wallet is connected or not
+          const [walletConnected, setWalletConnected] = useState(false);
+          // loading is set to true when we are waiting for a transaction to get mined
+          const [loading, setLoading] = useState(false);
+          // tokenIdsMinted keeps track of the number of tokenIds that have been minted
+          const [tokenIdsMinted, setTokenIdsMinted] = useState("0");
+          // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
+          const web3ModalRef = useRef();
+
+          /**
+           * publicMint: Mint an NFT
+           */
+          const publicMint = async () => {
+            try {
+              console.log("Public mint");
+              // We need a Signer here since this is a 'write' transaction.
+              const signer = await getProviderOrSigner(true);
+              // Create a new instance of the Contract with a Signer, which allows
+              // update methods
+              const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer);
+              // call the mint from the contract to mint the LW3Punks
+              const tx = await nftContract.mint({
+                // value signifies the cost of one LW3Punks which is "0.01" eth.
+                // We are parsing `0.01` string to ether using the utils library from ethers.js
+                value: utils.parseEther("0.01"),
+              });
+              setLoading(true);
+              // wait for the transaction to get mined
+              await tx.wait();
+              setLoading(false);
+              window.alert("You successfully minted a LW3Punk!");
+            } catch (err) {
+              console.error(err);
+            }
+          };
+
+          /*
+            connectWallet: Connects the MetaMask wallet
+          */
+          const connectWallet = async () => {
+            try {
+              // Get the provider from web3Modal, which in our case is MetaMask
+              // When used for the first time, it prompts the user to connect their wallet
+              await getProviderOrSigner();
+              setWalletConnected(true);
+            } catch (err) {
+              console.error(err);
+            }
+          };
+
+          /**
+           * getTokenIdsMinted: gets the number of tokenIds that have been minted
+           */
+          const getTokenIdsMinted = async () => {
+            try {
+              // Get the provider from web3Modal, which in our case is MetaMask
+              // No need for the Signer here, as we are only reading state from the blockchain
+              const provider = await getProviderOrSigner();
+              // We connect to the Contract using a Provider, so we will only
+              // have read-only access to the Contract
+              const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, provider);
+              // call the tokenIds from the contract
+              const _tokenIds = await nftContract.tokenIds();
+              console.log("tokenIds", _tokenIds);
+              //_tokenIds is a `Big Number`. We need to convert the Big Number to a string
+              setTokenIdsMinted(_tokenIds.toString());
+            } catch (err) {
+              console.error(err);
+            }
+          };
+
+          /**
+           * Returns a Provider or Signer object representing the Ethereum RPC with or without the
+           * signing capabilities of metamask attached
+           *
+           * A `Provider` is needed to interact with the blockchain - reading transactions, reading balances, reading state, etc.
+           *
+           * A `Signer` is a special type of Provider used in case a `write` transaction needs to be made to the blockchain, which involves the connected account
+           * needing to make a digital signature to authorize the transaction being sent. Metamask exposes a Signer API to allow your website to
+           * request signatures from the user using Signer functions.
+           *
+           * @param {*} needSigner - True if you need the signer, default false otherwise
+           */
+          const getProviderOrSigner = async (needSigner = false) => {
+            // Connect to Metamask
+            // Since we store `web3Modal` as a reference, we need to access the `current` value to get access to the underlying object
+            const provider = await web3ModalRef.current.connect();
+            const web3Provider = new providers.Web3Provider(provider);
+
+            // If user is not connected to the Mumbai network, let them know and throw an error
+            const { chainId } = await web3Provider.getNetwork();
+            if (chainId !== 80001) {
+              window.alert("Change the network to Mumbai");
+              throw new Error("Change network to Mumbai");
+            }
+
+            if (needSigner) {
+              const signer = web3Provider.getSigner();
+              return signer;
+            }
+            return web3Provider;
+          };
+
+          // useEffects are used to react to changes in state of the website
+          // The array at the end of function call represents what state changes will trigger this effect
+          // In this case, whenever the value of `walletConnected` changes - this effect will be called
+          useEffect(() => {
+            // if wallet is not connected, create a new instance of Web3Modal and connect the MetaMask wallet
+            if (!walletConnected) {
+              // Assign the Web3Modal class to the reference object by setting it's `current` value
+              // The `current` value is persisted throughout as long as this page is open
+              web3ModalRef.current = new Web3Modal({
+                network: "mumbai",
+                providerOptions: {},
+                disableInjectedProvider: false,
+              });
+
+              connectWallet();
+
+              getTokenIdsMinted();
+
+              // set an interval to get the number of token Ids minted every 5 seconds
+              setInterval(async function () {
+                await getTokenIdsMinted();
+              }, 5 * 1000);
+            }
+          }, [walletConnected]);
+
+          /*
+            renderButton: Returns a button based on the state of the dapp
+          */
+          const renderButton = () => {
+            // If wallet is not connected, return a button which allows them to connect their wallet
+            if (!walletConnected) {
+              return (
+                <button onClick={connectWallet} className={styles.button}>
+                  Connect your wallet
+                </button>
+              );
+            }
+
+            // If we are currently waiting for something, return a loading button
+            if (loading) {
+              return <button className={styles.button}>Loading...</button>;
+            }
+
+            return (
+              <button className={styles.button} onClick={publicMint}>
+                Public Mint 🚀
+              </button>
+            );
+          };
+
+          return (
+            <div>
+              <Head>
+                <title>LW3Punks</title>
+                <meta name="description" content="LW3Punks-Dapp" />
+                <link rel="icon" href="/favicon.ico" />
+              </Head>
+              <div className={styles.main}>
+                <div>
+                  <h1 className={styles.title}>Welcome to LW3Punks!</h1>
+                  <div className={styles.description}>
+                    Its an NFT collection for LearnWeb3 students.
                   </div>
-                ) : p.deadline.getTime() < Date.now() && !p.executed ? (
-                  <div className={styles.flex}>
-                    <button
-                      className={styles.button2}
-                      onClick={() => executeProposal(p.proposalId)}
-                    >
-                      Execute Proposal{" "}
-                      {p.yayVotes > p.nayVotes ? "(YAY)" : "(NAY)"}
-                    </button>
+                  <div className={styles.description}>
+                    {tokenIdsMinted}/10 have been minted
                   </div>
-                ) : (
-                  <div className={styles.description}>Proposal Executed</div>
-                )}
+                  {renderButton()}
+                </div>
+                <div>
+                  <img className={styles.image} src="./LW3punks/1.png" />
+                </div>
               </div>
-            ))}
-          </div>
-        );
-      }
-    }
 
-    return (
-      <div>
-        <Head>
-          <title>CryptoDevs DAO</title>
-          <meta name="description" content="CryptoDevs DAO" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-
-        <div className={styles.main}>
-          <div>
-            <h1 className={styles.title}>Welcome to Crypto Devs!</h1>
-            <div className={styles.description}>Welcome to the DAO!</div>
-            <div className={styles.description}>
-              Your CryptoDevs NFT Balance: {nftBalance}
-              <br />
-              Treasury Balance: {formatEther(treasuryBalance)} ETH
-              <br />
-              Total Number of Proposals: {numProposals}
+              <footer className={styles.footer}>Made with &#10084; by LW3Punks</footer>
             </div>
-            <div className={styles.flex}>
-              <button
-                className={styles.button}
-                onClick={() => setSelectedTab("Create Proposal")}
-              >
-                Create Proposal
-              </button>
-              <button
-                className={styles.button}
-                onClick={() => setSelectedTab("View Proposals")}
-              >
-                View Proposals
-              </button>
-            </div>
-            {renderTabs()}
-          </div>
-          <div>
-            <img className={styles.image} src="/cryptodevs/0.svg" />
-          </div>
-        </div>
+          );
+        }
 
-        <footer className={styles.footer}>
-          Made with &#10084; by Crypto Devs
-        </footer>
-      </div>
-    );
-  }
+    ```
+- Now create a new folder under the my-app folder and name it `constants`.
+- In the constants folder create a file, `index.js` and paste the following code.
+
+  - Replace `"address of your NFT contract"` with the address of the LW3Punks contract that you deployed and saved to your notepad.
+  - Replace `---your abi---` with the abi of your LW3Punks Contract. To get the abi for your contract, go to your `hardhat-tutorial/artifacts/contracts/LW3Punks.sol` folder and from your `LW3Punks.json` file get the array marked under the `"abi"` key.
+
+  ```js
+  export const abi =---your abi---
+  export const NFT_CONTRACT_ADDRESS = "address of your NFT contract"
   ```
 
-- Let's run it! In your terminal, from the `my-app` directory, execute:
+- Now in your terminal which is pointing to `my-app` folder, execute
+
   ```bash
   npm run dev
   ```
-  to see your website in action. It should look like the screenshot at the beginning of this tutorial.
 
-Congratulations! Your CryptoDevs DAO website should now be working.
+Your LW3Punks NFT dapp should now work without errors 🚀
 
-### Testing
+---
 
-- Create a couple of proposals
-- Try voting `YAY` on one, and `NAY` on the other
-- Wait for 5 minutes for their deadlines to pass
-- Execute both of them.
-- Watch the balance of the DAO Treasury go down by `0.1 ETH` due to the proposal which passed as it bought an NFT upon execution.
+### Push to github
 
-### Push to Github
+Make sure before proceeding you have [pushed all your code to github](https://medium.com/hackernoon/a-gentle-introduction-to-git-and-github-the-eli5-way-43f0aa64f2e4) :)
 
-Make sure to push all this code to Github before proceeding to the next step.
+## Deploying your dApp
 
-### Website Deployment
+We will now deploy your dApp, so that everyone can see your website and you can share it with all of your LearnWeb3 DAO friends.
 
-What good is a website if you cannot share it with others? Let's work on deploying your dApp to the world so you can share it with all your LearnWeb3DAO frens.
-
-- Go to [Vercel Dashboard](https://vercel.com) and sign in with your GitHub account.
-- Click on the `New Project` button and select your `DAO-Tutorial` repo.
+- Go to https://vercel.com/ and sign in with your GitHub
+- Then click on `New Project` button and then select your IPFS-Practical repo
 - When configuring your new project, Vercel will allow you to customize your `Root Directory`
-- Since our Next.js application is within a subfolder of the repo, we need to modify it.
-- Click `Edit` next to `Root Directory` and set it to `my-app`.
-- Select the framework as `Next.js`
+- Click `Edit` next to `Root Directory` and set it to `my-app`
+- Select the Framework as `Next.js`
 - Click `Deploy`
+![](https://i.imgur.com/G48X8jp.png)
 
-![](https://i.imgur.com/YIOtTTR.png)
 
-- Now you can see your deployed website by going to your Vercel Dashboard, selecting your project, and copying the domain from there!
+- Now you can see your deployed website by going to your dashboard, selecting your project, and copying the `domain` from there! Save the `domain` on notepad, you would need it later.
 
-### CONGRATULATIONS! You're all done!
 
-Hopefully you enjoyed this tutorial. Don't forget to share your DAO website in the `#showcase` channel on Discord :D
+- Share your website link with everyone on discord :) and spread happiness.
